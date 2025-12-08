@@ -3,18 +3,18 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
-# ================= ✅ 你的路径配置 =================
+# ================= ✅ YOUR PATH CONFIGURATION =================
 LOG_DIR = r"D:\AML\Visual-Place-Recognition-Project\logs\log_dir\2025-12-07_19-13-12"
 Z_DATA_PATH = os.path.join(LOG_DIR, "z_data.torch")
 INLIERS_DIR = os.path.join(LOG_DIR, "preds_superpoint-lg")
-# ==================================================
+# ==============================================================
 
 def plot_final_histogram():
-    print("🚀 正在解析 Ground Truth 数据...")
+    print("🚀 Parsing Ground Truth Data...")
     
-    # 1. 加载并解析字典，得到 Top-1 正确性 Mask
+    # 1. Load and parse the dictionary to get the Top-1 correctness mask
     if not os.path.exists(Z_DATA_PATH):
-        print("❌ 找不到 z_data.torch")
+        print("❌ Error: z_data.torch not found.")
         return
         
     try:
@@ -30,7 +30,7 @@ def plot_final_histogram():
             if isinstance(top_pred, torch.Tensor):
                 top_pred = top_pred.item()
             
-            # 判断 Top-1 是否命中
+            # Check if the Top-1 prediction is correct
             if len(true_matches) > 0:
                 if isinstance(true_matches, torch.Tensor):
                     hit = (top_pred == true_matches).any().item()
@@ -41,17 +41,17 @@ def plot_final_histogram():
             
             is_correct_mask.append(hit)
             
-        print(f"📊 解析完成: Top-1 正确查询 {sum(is_correct_mask)} 个，错误查询 {len(is_correct_mask) - sum(is_correct_mask)} 个。")
+        print(f"📊 Parsing Complete: Top-1 Correct Queries {sum(is_correct_mask)}, Wrong Queries {len(is_correct_mask) - sum(is_correct_mask)}.")
         
     except Exception as e:
-        print(f"❌ 解析 z_data 失败: {e}")
+        print(f"❌ Failed to parse z_data: {e}")
         return
 
-    # 2. 读取内点数据
-    print("正在读取内点数据 (核心步骤)...")
+    # 2. Read inliers data
+    print("Reading Inliers Data (Core Step)...")
     files = sorted([f for f in os.listdir(INLIERS_DIR) if f.endswith(".torch")])
     
-    # 对齐
+    # Align data lengths
     min_len = min(len(files), len(is_correct_mask))
     files = files[:min_len]
     is_correct_mask = is_correct_mask[:min_len]
@@ -64,16 +64,16 @@ def plot_final_histogram():
             filepath = os.path.join(INLIERS_DIR, filename)
             data = torch.load(filepath, weights_only=False)
             
-            # === 🔥 最终修复逻辑 🔥 ===
-            # data 是一个包含 20 个字典的列表。
-            # 我们要遍历这 20 个字典，找到 'num_inliers' 最大的那个值。
+            # === 🔥 Final Fix Logic 🔥 ===
+            # 'data' is a list containing 20 dictionaries.
+            # We iterate through these 20 dictionaries to find the maximum 'num_inliers' value.
             
             max_val = 0
             if isinstance(data, list):
                 counts = [x['num_inliers'] for x in data if isinstance(x, dict) and 'num_inliers' in x]
                 max_val = max(counts) if counts else 0
             
-            # 分类
+            # Classification
             if is_correct_mask[idx]:
                 correct_inliers.append(max_val)
             else:
@@ -82,11 +82,11 @@ def plot_final_histogram():
             # print(f"Skipping {filename} due to error: {e}")
             pass
 
-    # 3. 画红绿对比图
-    print("正在绘图...")
+    # 3. Plot the red/green contrast histogram
+    print("Generating Plot...")
     plt.figure(figsize=(10, 6))
     
-    # 堆叠直方图：这次应该能看到分布了
+    # Stacked histogram: This should now show the distribution
     plt.hist([correct_inliers, wrong_inliers], bins=50, range=(0, 200), stacked=True,
              color=['#4CAF50', '#F44336'], label=['Correct Queries', 'Wrong Queries'],
              edgecolor='black', alpha=0.8)
@@ -99,7 +99,7 @@ def plot_final_histogram():
     
     save_path = os.path.join(LOG_DIR, "inliers_split_histogram_final_v3.png")
     plt.savefig(save_path)
-    print(f"✅ 恭喜！最终修复版图片已保存到: {save_path}")
+    print(f"✅ Success! Final fixed image saved to: {save_path}")
     plt.show()
 
 if __name__ == "__main__":
