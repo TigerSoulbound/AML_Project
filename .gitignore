@@ -172,3 +172,32 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+# ----------------------------------------------------
+# VPR PROJECT CUSTOMIZATION (Required for your project)
+# ----------------------------------------------------
+
+# 1. Datasets and Large Files (REQUIRED - DO NOT UPLOAD)
+# Exclude the entire dataset folder and its contents
+data/
+datasets/
+
+# 2. Logs and Experiment Outputs
+# Exclude the logs directory which contains huge output files and temporary descriptors
+logs/
+log_dir/
+temp/
+
+# 3. Model Weights and Descriptor Caches
+# Exclude common model file extensions (PyTorch, general weights)
+*.pth
+*.pt
+*.bin
+*.safetensors
+*.onnx
+
+# 4. Other VPR/Matching specific outputs
+# Exclude any temporary descriptor files or large arrays if they are not inside logs/
+*.torch
+*.npy
