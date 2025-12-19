@@ -128,6 +128,8 @@ To regenerate the statistics and the plot, simply run the following command in t
 
 ```bash
 python final_analysis.py
+```
+
 ### 📊 Data Logs
 If you need to inspect the raw prediction files, they are located here:
 
