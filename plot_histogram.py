@@ -4,15 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import re
 
-LOG_DIR = r"D:\AML\Visual-Place-Recognition-Project\logs\log_dir\2025-12-07_19-13-12"
+LOG_DIR = r"D:\AML\Visual-Place-Recognition-Project\logs\log_dir\2025-12-18_12-51-25"
 Z_DATA_PATH = os.path.join(LOG_DIR, "z_data.torch")
 INLIERS_DIR = os.path.join(LOG_DIR, "preds_superpoint-lg")
 
 def numerical_sort_key(filename):
-    """
-    从文件名中提取数字用于排序，避免 '10' 排在 '2' 前面的问题。
-    假设文件名类似 'query_123.torch' 或只是数字。
-    """
     numbers = re.findall(r'\d+', filename)
     return int(numbers[0]) if numbers else filename
 
@@ -56,10 +52,10 @@ def plot_final_histogram():
     # 2. Read inliers data
     print("Reading Inliers Data...")
     
-    # === 🔥 FIX: 使用数字排序 ===
+    # use numerical sort to ensure correct order
     files = sorted([f for f in os.listdir(INLIERS_DIR) if f.endswith(".torch")], key=numerical_sort_key)
     
-    # 检查长度是否一致，如果不一致打印警告
+    # check length consistency
     if len(files) != len(is_correct_mask):
         print(f"⚠️ Warning: File count ({len(files)}) does not match query count ({len(is_correct_mask)}). Truncating to minimum.")
 
@@ -79,7 +75,7 @@ def plot_final_histogram():
             
             max_val = 0
             if isinstance(data, list):
-                # 过滤掉 None 或异常值
+                # Assuming data is a list of dicts with 'num_inliers' key
                 counts = [x['num_inliers'] for x in data if isinstance(x, dict) and 'num_inliers' in x]
                 max_val = max(counts) if counts else 0
             
@@ -94,25 +90,27 @@ def plot_final_histogram():
     print("Generating Plot...")
     plt.figure(figsize=(10, 6))
     
-    # 设置 bins
+    # set dynamic range for bins
     max_inlier_found = max(max(correct_inliers, default=0), max(wrong_inliers, default=0))
     bins = np.linspace(0, min(200, max_inlier_found + 10), 50) # 动态设置范围，上限 200 或最大值
 
-    # 绘制直方图
-    # alpha 设置透明度，方便看到重叠部分
+    # draw histograms
+    # alpha for transparency and density=False for counts
     plt.hist(correct_inliers, bins=bins, color='#4CAF50', alpha=0.6, label='Correct Queries', density=False)
     plt.hist(wrong_inliers, bins=bins, color='#F44336', alpha=0.6, label='Wrong Queries', density=False)
     
-    # 如果想看“归一化”后的概率密度（因为 Wrong 往往很多，会把 Correct 压得看不见），可以将上面的 density 改为 True
+    # 4. Final touches
     
-    plt.title('Inliers Distribution: Correct vs Wrong (SuperPoint+LightGlue)')
+    # change title to reflect method and dataset
+    plt.title('Inliers Distribution: Correct vs Wrong (SuperPoint+LightGlue)\nDataset: Tokyo-XS')
+
     plt.xlabel('Max Number of Inliers')
     plt.ylabel('Frequency (Count)')
     plt.legend()
     plt.grid(axis='y', alpha=0.3)
     
     save_path = os.path.join(LOG_DIR, "inliers_histogram_fixed.png")
-    plt.savefig(save_path, dpi=300) # 提高清晰度
+    plt.savefig(save_path, dpi=300) # high resolution
     print(f"✅ Success! Image saved to: {save_path}")
     plt.show()
 
