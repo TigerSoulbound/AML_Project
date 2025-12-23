@@ -77,3 +77,19 @@ Full comparison of all VPR methods with different matchers on the various datase
 | | **MixVPR** | ResNet50 | 512 | superpoint-lg | 87.9 | 91.4 | 92.1 | 93.3 | 97.3 | 94.9 | 88.4 | 75.2 | 99.4 |
 | | | | | loftr | 89.8 | 91.7 | 92.7 | 93.3 | 97.3 | 94.9 | 88.4 | 75.2 | 99.6 |
 | | | | | superglue | 87.0 | 91.1 | 92.4 | 93.3 | 97.3 | 94.9 | 88.4 | 75.2 | 99.4 |
+
+
+## 5. Reproducibility
+
+### 5.1 Environment Setup
+
+```bash
+# Need python 3.10 to be installed
+py -3.10 -m venv venv
+
+# Activate it
+.\venv\Scripts\activate
+
+# Install all the requirements
+pip install -r requirements.txt
+```
