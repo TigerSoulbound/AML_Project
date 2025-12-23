@@ -92,3 +92,9 @@ Run the following script to reproduce the training and evaluation process:
 ```bash
 python universal_lr.py
 ```
+
+### Visualization: The resulting S-Curve (Sigmoid) demonstrates the relationship between inlier counts and confidence:
+
+### Observation: The learned curve shows a strong positive correlation between inlier counts and the probability of correctness.
+
+### Conservatism: Due to the challenging nature of the training set (Night), the model adopts a "conservative" confidence score (starting around 20%), effectively avoiding overconfidence in low-texture or difficult scenarios.
