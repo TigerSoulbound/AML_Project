@@ -93,3 +93,42 @@ py -3.10 -m venv venv
 # Install all the requirements
 pip install -r requirements.txt
 ```
+
+### 5.2 Superglue Fix
+
+```bash
+# Import the first submodule
+git submodule update --init
+
+# One Level deep
+cd image-matching-models
+
+git submodule update --init matching/third_party/LightGlue
+git submodule update --init matching/third_party/imatch-toolbox
+
+# Two Level deep
+cd matching\third_party\imatch-toolbox
+```
+
+Replace the .gitmodules content with this
+
+```
+[submodule "third_party/SuperGluePretrainedNetwork"]
+	path = third_party/superglue
+	url = https://github.com/magicleap/SuperGluePretrainedNetwork.git
+[submodule "third_party/r2d2"]
+	path = third_party/r2d2
+	url = https://github.com/naver/r2d2.git
+	ignore = untracked
+[submodule "third_party/d2net"]
+	path = third_party/d2net
+	url = https://github.com/mihaidusmanu/d2-net.git
+[submodule "third_party/patch2pix"]
+	path = third_party/patch2pix
+	url = https://github.com/GrumpyZhou/patch2pix.git
+```
+
+```bash
+# Perform this command while inside the imatch-toolbox folder
+git submodule update --init
+```
