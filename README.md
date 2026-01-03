@@ -191,17 +191,10 @@ python universal_lr.py
 The script outputs a metrics table and saves three figures.
 
 Metrics Table
-
-Plaintext
 Method     | AUPRC (↑)  | AUSE (↓)   | Spearman (↑) | R2 Score (↑)
 ---------------------------------------------------------------------------
 CosPlace   | 0.8611     | 0.0954     | 0.5820       | 0.0242
 MegaLoc    | 0.9742     | 0.0231     | 0.4652       | -1.4816
-⚠️ Note on Negative R 
-2
-  Scores: Negative R 
-2
-  values (e.g., for MegaLoc) are expected in this cross-domain setup. The model, trained on the hard SVOX dataset, learns to be "conservative" (predicting lower probabilities). When applied to the highly accurate MegaLoc method on SF-XS, the model is under-confident compared to the ground truth, leading to a negative goodness-of-fit. However, the high AUPRC and positive Spearman scores confirm that the relative ranking is correct and the estimator is effective.
 
 #### Generated Figures
 
