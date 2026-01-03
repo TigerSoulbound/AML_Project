@@ -155,4 +155,60 @@ The script requires the following Python libraries:
 pip install torch numpy matplotlib scikit-learn scipy
 ```
 
+### 🚀 Usage Guide
+#### 1. Configuration
 
+Open universal_lr.py and modify the Configuration Area at the top to match your local file paths.
+
+* **TRAIN_LOG_DIR:** Path to the SVOX (Night) log folder.
+
+* **TEST_LOG_DIRS:** Dictionary of paths to SF-XS log folders for different methods.
+
+* **MATCHER_FOLDER:** The subfolder name containing matcher results (e.g., preds_superpoint-lg).
+
+```bash
+Python
+# Example Configuration
+TRAIN_LOG_DIR = r"D:\AML\Projects\logs\2025-12-23_21-01-31" # Teacher
+TEST_LOG_DIRS = {
+    "CosPlace": r"D:\AML\Projects\logs\2025-12-30_18-45-46",
+    "MegaLoc":  r"D:\AML\Projects\logs\2025-12-31_10-47-59"
+}
+```
+
+
+#### 2. Execution
+
+Run the script directly from the terminal:
+
+```
+Bash
+python universal_lr.py
+```
+
+#### 3. Output Interpretation
+
+The script outputs a metrics table and saves three figures.
+
+Metrics Table
+
+Plaintext
+Method     | AUPRC (↑)  | AUSE (↓)   | Spearman (↑) | R2 Score (↑)
+---------------------------------------------------------------------------
+CosPlace   | 0.8611     | 0.0954     | 0.5820       | 0.0242
+MegaLoc    | 0.9742     | 0.0231     | 0.4652       | -1.4816
+⚠️ Note on Negative R 
+2
+  Scores: Negative R 
+2
+  values (e.g., for MegaLoc) are expected in this cross-domain setup. The model, trained on the hard SVOX dataset, learns to be "conservative" (predicting lower probabilities). When applied to the highly accurate MegaLoc method on SF-XS, the model is under-confident compared to the ground truth, leading to a negative goodness-of-fit. However, the high AUPRC and positive Spearman scores confirm that the relative ranking is correct and the estimator is effective.
+
+#### Generated Figures
+
+* **The script automatically saves the following plots to the current directory:**
+
+* **Fig1_Logistic_Curve.png (The S-Curve):** Visualizes the learned decision boundary. It shows how the number of inliers translates to the probability of a match being correct.
+
+* **Fig2_Sparsification_Curve.png (Calibration):** Visualizes the AUSE. It plots the error rate as uncertain samples are removed. A smaller gap between the Model Curve and the Oracle Curve indicates better uncertainty estimation.
+
+* **Fig3_Bar_Chart.png (Comparison):** A side-by-side comparison of all tested methods, highlighting MegaLoc as the most robust (Highest AUPRC) and reliable (Lowest AUSE) method.
