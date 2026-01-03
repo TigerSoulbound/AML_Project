@@ -7,15 +7,16 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score, r2_score
 from scipy.stats import spearmanr
 
-# 忽略烦人的警告
+# Ignore warnings
 warnings.filterwarnings('ignore')
 
-# ================= 🔧 配置区域 (保持你的正确路径) =================
+# ================= 🔧 CONFIGURATION AREA =================
 
-# 1. 训练集 (Teacher) -> SVOX (Sun vs Night)
+# 1. Training Set (Teacher) -> SVOX (Sun vs Night)
 TRAIN_LOG_DIR = r"D:\AML\Visual-Place-Recognition-Project\logs\2025-12-23_21-01-31"
 
-# 2. 测试集列表 (Student) -> SF-XS
+# 2. Test Sets (Student) -> SF-XS
+# The keys will be used as labels in the plots
 TEST_LOG_DIRS = {
     "CosPlace": r"D:\AML\Visual-Place-Recognition-Project\logs\log_dir\2025-12-30_18-45-46",
     "NetVLAD":  r"D:\AML\Visual-Place-Recognition-Project\logs\log_dir\2025-12-30_23-01-01",
@@ -23,21 +24,24 @@ TEST_LOG_DIRS = {
     "MegaLoc":  r"D:\AML\Visual-Place-Recognition-Project\logs\log_dir\2025-12-31_10-47-59"
 }
 
-# 3. 匹配器
+# 3. Matcher Folder Name
 MATCHER_FOLDER = "preds_superpoint-lg"
 
 # =======================================================
 
 def get_data(log_dir, folder_name):
-    """读取日志文件，提取连线数(X)和标签(y)"""
+    """
+    Reads log files to extract inlier counts (X) and correctness labels (y).
+    """
     z_path = os.path.join(log_dir, "z_data.torch")
     preds_path = os.path.join(log_dir, folder_name)
     
     if not os.path.exists(z_path) or not os.path.exists(preds_path):
-        print(f"   ❌ 跳过: 文件不全 -> {log_dir}")
+        print(f"   ❌ Skipping: Incomplete files -> {log_dir}")
         return None, None
 
     z_data = torch.load(z_path, weights_only=False)
+    # Sort files numerically to ensure alignment
     files = sorted([f for f in os.listdir(preds_path) if f.endswith(".torch")], 
                    key=lambda x: int(''.join(filter(str.isdigit, x))))
     
@@ -46,7 +50,7 @@ def get_data(log_dir, folder_name):
     limit = min(len(z_data['predictions']), len(files))
     
     for i in range(limit):
-        # 1. 获取标签
+        # 1. Get Label (Correctness)
         top_pred = z_data['predictions'][i][0]
         if isinstance(top_pred, torch.Tensor): top_pred = top_pred.item()
         true_matches = z_data['positives_per_query'][i]
@@ -55,7 +59,7 @@ def get_data(log_dir, folder_name):
         is_correct = 1 if top_pred in true_matches else 0
         y_labels.append(is_correct)
         
-        # 2. 获取特征 (Inliers)
+        # 2. Get Feature (Inliers)
         data = torch.load(os.path.join(preds_path, files[i]), weights_only=False)
         max_inliers = 0
         if isinstance(data, list) and len(data) > 0:
@@ -69,9 +73,13 @@ def get_data(log_dir, folder_name):
     return np.array(X_inliers).reshape(-1, 1), np.array(y_labels)
 
 def compute_ause(y_true, y_pred_prob):
-    """计算稀疏化误差 (AUSE) 并返回曲线数据"""
+    """
+    Computes the Area Under the Sparsification Error (AUSE) curve.
+    Returns the score and the curve data for plotting.
+    """
     errors = (y_true == 0).astype(int)
     uncertainty = 1 - y_pred_prob
+    # Sort by uncertainty (descending)
     sort_idx = np.argsort(uncertainty)[::-1]
     errors_sorted = errors[sort_idx]
     
@@ -92,35 +100,35 @@ def compute_ause(y_true, y_pred_prob):
             oracle_curve.append(0)
             
     x = np.arange(n) / n
-    # 使用 trapz 计算面积
+    # Calculate area using trapezoidal rule
     ause = np.trapz(model_curve, x) - np.trapz(oracle_curve, x)
     return ause, model_curve, oracle_curve
 
 def main():
-    print("🚀 === 正在训练 SVOX (Teacher) 模型 ===")
+    print("🚀 === Training SVOX (Teacher) Model ===")
     X_train, y_train = get_data(TRAIN_LOG_DIR, MATCHER_FOLDER)
     
     if X_train is None:
-        print("❌ 训练集加载失败！")
+        print("❌ Failed to load training set! Please check paths.")
         return
 
-    # 1. 训练 Logistic Regression
+    # 1. Train Logistic Regression
     clf = LogisticRegression()
     clf.fit(X_train, y_train)
-    print(f"✅ 模型训练完毕! (样本数: {len(y_train)})")
+    print(f"✅ Model trained successfully! (Samples: {len(y_train)})")
     
-    print("\n⚔️ === 开始批量测试 (包含 Spearman 和 R2) ===")
+    print("\n⚔️ === Starting Batch Testing (including Spearman & R2) ===")
     
-    # 打印表头
+    # Print Table Header
     print(f"{'Method':<10} | {'AUPRC (↑)':<10} | {'AUSE (↓)':<10} | {'Spearman (↑)':<12} | {'R2 Score (↑)':<10}")
     print("-" * 75)
     
-    # 存储数据用于绘图
+    # Store statistics for plotting
     stats = {
         'names': [], 'auprc': [], 'ause': [], 'spearman': []
     }
     
-    # 用于画详细曲线的“最佳选手”数据
+    # Variables to track the "best performer" for detailed curve plotting
     best_ause = 1.0
     best_method_data = None 
 
@@ -132,29 +140,29 @@ def main():
             
         probs_test = clf.predict_proba(X_test)[:, 1]
         
-        # === 核心指标计算 ===
-        # 1. AUPRC (鲁棒性)
+        # === Core Metric Calculation ===
+        # 1. AUPRC (Robustness)
         auprc = average_precision_score(y_test, probs_test)
         
-        # 2. AUSE (可靠性/稀疏化)
+        # 2. AUSE (Reliability/Sparsification)
         ause_val, model_curve, oracle_curve = compute_ause(y_test, probs_test)
         
-        # 3. Spearman (排序相关性)
+        # 3. Spearman (Rank Correlation)
         spearman_val, _ = spearmanr(probs_test, y_test)
         
-        # 4. R2 Score (拟合度)
+        # 4. R2 Score (Goodness of Fit)
         r2_val = r2_score(y_test, probs_test)
         
-        # 打印一行结果
+        # Print result row
         print(f"{name:<10} | {auprc:.4f}     | {ause_val:.4f}     | {spearman_val:.4f}       | {r2_val:.4f}")
         
-        # 存入列表
+        # Append to lists
         stats['names'].append(name)
         stats['auprc'].append(auprc)
         stats['ause'].append(ause_val)
         stats['spearman'].append(spearman_val)
         
-        # 记录表现最好的方法（AUSE最低）的数据，用于画 Fig1 和 Fig2
+        # Update best method data (lowest AUSE) for Fig 1 and Fig 2
         if ause_val < best_ause:
             best_ause = ause_val
             best_method_data = {
@@ -162,11 +170,11 @@ def main():
                 'model_curve': model_curve, 'oracle_curve': oracle_curve
             }
 
-    # ================= 🎨 绘图部分 =================
-    print("\n📊 正在生成三张核心图表...")
+    # ================= 🎨 Plotting Section =================
+    print("\n📊 Generating three core figures...")
     plt.style.use('ggplot')
 
-    # --- 图 1: Logistic Regression Curve (S-Curve) ---
+    # --- Fig 1: Logistic Regression Curve (S-Curve) ---
     plt.figure(figsize=(8, 6))
     x_range = np.linspace(0, 150, 300).reshape(-1, 1)
     y_prob_learned = clf.predict_proba(x_range)[:, 1]
@@ -184,9 +192,9 @@ def main():
     plt.xlim(-5, 150)
     plt.tight_layout()
     plt.savefig('Fig1_Logistic_Curve.png', dpi=300)
-    print("✅ Fig 1 已保存")
+    print("✅ Fig 1 Saved")
 
-    # --- 图 2: Sparsification Curve (展示 AUSE) ---
+    # --- Fig 2: Sparsification Curve (Showing AUSE) ---
     plt.figure(figsize=(8, 6))
     if best_method_data:
         mc = best_method_data['model_curve']
@@ -204,9 +212,9 @@ def main():
         plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.savefig('Fig2_Sparsification_Curve.png', dpi=300)
-    print("✅ Fig 2 已保存")
+    print("✅ Fig 2 Saved")
 
-    # --- 图 3: Bar Charts (对比所有方法) ---
+    # --- Fig 3: Bar Charts (Comparison across methods) ---
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
     
     # Bar 1: AUPRC
@@ -228,7 +236,7 @@ def main():
     plt.suptitle('Fig 3. Performance Comparison across Methods', fontsize=16)
     plt.tight_layout()
     plt.savefig('Fig3_Bar_Chart.png', dpi=300)
-    print("✅ Fig 3 已保存")
+    print("✅ Fig 3 Saved")
     
     plt.show()
 
