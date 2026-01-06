@@ -195,9 +195,11 @@ Results from `universal_lr.py` evaluating the uncertainty module on **SF-XS** (T
 | Method       | AUPRC (Robustness) ↑ | AUSE (Calibration) ↓ | Spearman (Ranking) ↑ | R² Score (Fit) ↑ |
 | :---         | :---                 | :---                 | :---                 | :---             |
 | **CosPlace** | 0.8611               | 0.0954               | 0.5820               | 0.0242           |
+| **NetVLAD** | 0.7339               | 0.1319               | **0.6015** | **0.2217** |
+| **MixVPR** | 0.8980               | 0.0755               | 0.5674               | -0.1384          |
 | **MegaLoc** | **0.9742** | **0.0231** | 0.4652               | -1.4816* |
 
-*\*Note: The negative R² score for MegaLoc is due to the domain shift between training (Night) and testing (Day), causing the model to be conservative but still highly accurate in ranking (High AUPRC).*
+*\*Note: The negative R² score for MegaLoc is due to the domain shift between training (Night) and testing (Day). While the model is conservative (under-estimating probabilities), it maintains excellent ranking performance (High AUPRC), effectively distinguishing correct matches from incorrect ones.*
 
 ---
 
