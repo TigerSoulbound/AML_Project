@@ -190,7 +190,7 @@ Full comparison of all VPR methods with different matchers on the **Tokyo** data
 | | | | | superglue | 87.0 | 91.1 | 92.4 | 93.3 | 97.3 | 94.9 | 88.4 | 75.2 | 99.4 |
 
 ### 4.2 Uncertainty Estimation Analysis (SF-XS)
-Results from `universal_lr.py` evaluating the uncertainty module on **SF-XS** (Trained on SVOX Night):
+Results from `universal_lr.py` evaluating the uncertainty module on **SF-XS** (Trained on SVOX (Sun vs Night)):
 
 | Method       | AUPRC (Robustness) ↑ | AUSE (Calibration) ↓ | Spearman (Ranking) ↑ | R² Score (Fit) ↑ |
 | :---         | :---                 | :---                 | :---                 | :---             |
