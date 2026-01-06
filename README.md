@@ -115,8 +115,9 @@ Run matching to calculate inliers. To satisfy course requirements, we compare 4 
 * **SuperPoint + LightGlue (Sparse)**
     ```bash
     python match_queries_preds.py ^
-        --preds-dir "logs/megaloc_sfxs_test/<TIMESTAMP>/preds" ^
-        --matcher superpoint-lg --num-preds 20
+        --preds-dir 'D:/Visual-Place-Recognition-Project/logs/log_dir/<TIMESTAMP>/preds' \
+		--matcher superpoint-lg \
+		--num-preds 20
     ```
 
 ### Phase 2: Qualitative Analysis (Plots)
